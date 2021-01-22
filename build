@@ -1,0 +1,13 @@
+#!/bin/sh
+CC="gcc"
+CFLAGS="-Os -g -Wall -Wextra"
+SRC=main.c
+
+echo rm utils.o main.o
+rm utils.o main.o
+echo $CC -c utils.c $CFLAGS
+$CC -c utils.c $CFLAGS
+echo $CC -c $SRC $CFLAGS
+$CC -c $SRC $CFLAGS
+echo $CC -c main.o utils.o
+$CC main.o utils.o -o cppws

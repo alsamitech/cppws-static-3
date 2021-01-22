@@ -1,0 +1,205 @@
+#ifndef DString
+#define DString
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+  typedef char* d_type;
+
+typedef struct{
+	d_type* li;
+	long unsigned int arr_len;
+	long unsigned int alloc;
+}d_t;
+
+/*inline*/ d_t* darr_init(long unsigned int array_init_sz){
+	d_t* d_i=(d_t*)malloc(sizeof(d_t));
+	if(d_i==NULL)return NULL;
+	d_i->li=(d_type*)malloc(sizeof(d_type)*array_init_sz);
+	d_i->alloc=array_init_sz;
+	d_i->arr_len=0;
+	
+	return d_i;
+}
+
+char* expand(char* in, char* ex){
+  long unsigned int inlen=strlen(in);
+  long unsigned int exlen=strlen(ex);
+
+  char* newln=realloc(ex, inlen+exlen);
+  strcpy(newln+exlen, in);
+
+  return newln;
+}
+
+char* expandh(char* in, char* ex){
+  long unsigned int inlen=strlen(in);
+  long unsigned int exlen=strlen(ex);
+
+  char* newln=realloc(ex, inlen+exlen+1);
+  newln[exlen]='\n';
+  strcpy(newln+exlen+1, in);
+
+
+
+  return newln;
+}
+
+char* getDirList(char* f){
+  DIR* dir;
+  struct dirent* sd;
+  dir=opendir(f);
+  if(dir==NULL){
+    //return strdup("Not a directory\n");
+    return NULL;
+  }
+  char* dirls=strdup("Directory list");
+  while((sd=readdir(dir))!=NULL){
+    expandh(sd->d_name, dirls);
+
+  }
+  return dirls;
+}
+
+
+unsigned char d_grow(d_t* t, long unsigned int size){
+	//d_type* new_li=(d_type*)malloc(size*t->alloc);
+	d_type* new_li=(d_type*)malloc((size*sizeof(d_type))+t->alloc);
+	
+	if(new_li==NULL){
+		return 1;
+	}
+	
+	memcpy(new_li, t->li, sizeof(d_type)*t->arr_len);
+	free(t->li);
+	
+	t->li=new_li;
+	t->alloc *=size;
+	
+	return 0;
+}
+
+/*void d_str_append(d_t* t, char* val){
+	long unsigned int val_len= strlen(val);
+	t->arr_len+=val_len;
+	d_grow(t, val_len);
+	strcpy(t->li+3, val);
+	
+	//return val_len;
+}*/
+	
+d_type d_append(d_t* t, d_type val){
+	t->li[t->arr_len++]=val;
+	return val;
+}
+
+/*this function should not change the value of the input pointer*/
+/*char* StringAppend(char* InChar){
+	long unsigned int StrSz=strlen(InChar);
+	
+	
+	
+	
+	free(InChar);
+	
+	return NULL;
+}*/
+
+/*MD Array*/
+char** tok2(char* InC, char* delim){
+	   char** tok=(char**)malloc(1*sizeof(char*));
+	   //printf("%p\n", tok);
+
+	   tok[0]=strtok(strdup(InC), delim);
+	   {
+	   int i=1;
+	   while(tok[i-1]!=NULL){
+	   		tok=(char**)realloc(tok, i*sizeof(char*));
+	   		tok[i]=strtok(NULL, delim);
+	   		printf("%p\n", tok[i]);
+	   		i++;
+	   		
+	   }
+	   /*EBRACE*/}
+	   
+	   return tok;
+}
+
+char** atok(char* InC, char* delim){
+  char** tok=(char**)malloc(2*sizeof(char*));
+  //printf("%p\n", tok);
+
+  tok[0]=strtok(strdup(InC), delim);
+  {
+  int i=1;
+  while(tok[i-1]!=NULL){
+       tok=(char**)realloc(tok, (i+1)*sizeof(char*));
+       tok[i]=strtok(NULL, delim);
+       printf("%p\n", tok[i]);
+       i++;
+  
+  }
+  /*EBRACE*/}
+   
+  return tok;
+}
+
+char** atokl(char* InC, char* delim, long unsigned int* len){
+  char** tok=(char**)malloc(2*sizeof(char*));
+  //printf("%p\n", tok);
+
+  tok[0]=strtok(strdup(InC), delim);
+  {
+  int i=1;
+  while(tok[i-1]!=NULL){
+    tok=(char**)realloc(tok, (i+1)*sizeof(char*));
+    tok[i]=strtok(NULL, delim);
+    //printf("%p\n", tok[i]);
+    i++;
+  
+  }
+  *len=i;
+  /*EBRACE*/}
+   
+  return tok;
+}
+
+d_type d_getlast(d_t* t, long num){
+	   return t->li[t->arr_len-num];	
+}
+
+
+d_t* xtok(char* InC, char* delim){
+	   //char** tok=(char**)malloc(1*sizeof(char*));
+	   d_t* tok=darr_init(2);
+	   //printf("%p\n", tok);
+    char* new_inc=strdup(InC);
+		d_append(tok,strtok(new_inc, delim));
+	   {
+	   int i=1;
+	   while(d_getlast(tok, 1)!=NULL){
+	   		//tok=(char**)realloc(tok, i*sizeof(char*));
+	   		if(d_grow(tok, 1)==1){
+           fprintf(stderr,"bye\n");
+           exit(1);
+
+         }
+			  d_append(tok,strtok(NULL, delim));
+	   		printf("%p\n", tok->li[i]);
+	   		i++;
+	   		
+	   }
+	   /*EBRACE*/}
+	   
+	   return tok;
+}
+
+char get_by_last(char* str, long unsigned int index){
+	long unsigned int len=strlen(str);
+	
+	return str[len-index];
+}
+
+#endif

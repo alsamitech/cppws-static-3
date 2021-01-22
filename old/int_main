@@ -1,0 +1,23 @@
+int main(int argc, char** argv){
+  char* cnf_file=read_file(".wsconf", &cnf_file_len);
+  long unsigned int oof_len;
+  char** oof;
+  {
+    using namespace DStr;
+    oof=atokl(cnf_file, "\n", &oof_len);
+    
+  }
+  printf("%s\n%s\n%s\n%s\n", *oof, oof[1],oof[2],oof[3]);
+  // the length that atokl retuerns is 1 more than the amount of actual lines
+  printf("\n\033[1;32m%lu\033[0m\n", oof_len);
+
+  /*for(int i=0; i<6;i++){
+    KeyValDB::keyval_t* MyKey=KeyValDB::keyval_make(oof[i]);
+    printf("%s --- %s\n", MyKey->key, MyKey->val);
+  }*/
+
+  printf("FILE CONTENTS %lu\n%s", cnf_file_len, cnf_file);
+
+  //free(cnf_file);
+  return 0;  
+}
