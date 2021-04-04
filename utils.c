@@ -13,4 +13,5 @@ char* read_file(char* filenm, long unsigned int* len){
     fclose(f);
   }
   return buf;
+
 }

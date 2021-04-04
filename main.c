@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <unistd.h>
+#define DEBUGPRINT(_fmt)  fprintf(stderr, "[file %s, line %d]: " _fmt, __FILE__, __LINE__);
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -12,6 +13,8 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
+#include <sys/resource.h>
 
 #include "include/utils.h"
 #include "include/DString"
@@ -32,6 +35,8 @@ typedef unsigned char* NetStr;
 #define WSCONF_SUPRESS 0x400
 #define AF_FREE 0x200
 
+#define UPR printf("usage: %ld\n", get_mem_usage());
+long get_mem_usage();
 char* cnf_file;
 long unsigned int cnf_file_len;
 
@@ -148,30 +153,43 @@ typedef char* cstr;
     return 0;
   }
   unsigned char mainThreadLoop(ws_system_t* self){
-    self->recvln=(unsigned char*)malloc(self->info.maxline_in);
+    //self->recvln=(unsigned char*)malloc(self->info.maxline_in);
+    self->recvln=(unsigned char*)calloc(1,self->info.maxline_in);
     for(;;){
       sockaddr_in_t addr;
       socklen_t addr_len;
+      DEBUGPRINT("exists...");
       if(self->info.flags&WSCONF_PRINTALL){
         printf("\033[1;32mWaiting for a connection on port %d\033[0m\n", self->info.portno);
       }
 
+      DEBUGPRINT("exists...");
       self->connfd=accept(self->listenfd, (SA*)&addr, &addr_len);
 
+      DEBUGPRINT("exists...");
       char clientaddr[128+1];
       inet_ntop(AF_INET, &addr, clientaddr, 128);
       if(self->info.flags&WSCONF_PRINTALL){
         printf("\033[1;32mAccepted Connection\033[0m\n");        
       }
-      memset(self->recvln, 0, self->info.maxline_in);
+      DEBUGPRINT("exists...");
+      // sigkill found at memset
+      //memset(self->recvln, 0, self->info.maxline_in-10);
+      DEBUGPRINT("exists...");
       if((self->n=read(self->connfd, self->recvln, self->info.maxline_in))==-1){
         fprintf(stderr, "\033[1;31mError on read.\033[0m\n");
+        fflush(stderr);
+        free(recv);
+        close(self->connfd);
+        exit(1);
       }
       
+      DEBUGPRINT("exists...");
       unsigned short respf=0x0;
 
       unsigned char* resp=self->resp(self->recvln, clientaddr, &respf);
 
+      DEBUGPRINT("exists...");
       if(write(self->connfd,(char*)resp, strlen(resp))==-1){
         fprintf(stderr, "Unable to write to socket!\n");
 
@@ -268,6 +286,7 @@ int main(int argc, char** argv){
       rf.pg404=conf_kv->val;
       
     }
+    UPR
 C_FST: 
     //free(cnf_file);
     continue;
@@ -283,4 +302,10 @@ C_FST:
     mainThreadLoop(serv);
 
   }
+}
+
+long get_mem_usage(){
+  struct rusage ru;
+  getrusage(RUSAGE_SELF, &ru);
+  return ru.ru_maxrss;
 }

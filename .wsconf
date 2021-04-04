@@ -2,5 +2,6 @@ syntax:strict
 -#: nice
 homepg:index.html
 p#: Hello, World! (at config-init time)
-server-backlog:10
+port:6969
+server-backlog:3
 throw(404):404.html
